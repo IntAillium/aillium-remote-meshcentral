@@ -1,14 +1,23 @@
-# AI Development Guardrails
+# Aillium Guardrails — Remote Substrate (MeshCentral)
 
-This repository is part of the Aillium platform.
+## Purpose
+This repository provides remote connectivity only. It must remain a substrate, not a worker.
 
-Automated agents and AI tools must follow these rules:
+## Prohibitions
+- No task execution logic
+- No planning/orchestration logic
+- No direct calls to aillium-core task APIs
+- No storage of task state as source of truth
+- No billing computation
 
-- Do not introduce new architecture patterns without approval
-- Do not bypass policy, audit, or approval mechanisms
-- Do not add hardcoded credentials
-- Do not merge unrelated concerns into this repo
-- Follow schemas defined in aillium-schemas
-- Prefer clarity over cleverness
+## Allowed responsibilities
+- Secure endpoint connectivity
+- Session establishment for executors
+- Device enrollment + grouping/tagging
+- Audit-friendly logging and access controls
 
-Violations of these rules are considered defects.
+## Security requirements
+- Restrict access to admin UI (allowlist/VPN)
+- Enforce strong authentication
+- Segregate tenants by groups/tags
+- Record operator actions for audit
