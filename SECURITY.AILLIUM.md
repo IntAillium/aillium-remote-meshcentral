@@ -1,39 +1,18 @@
-# Security Policy
+# Security Policy — Aillium Remote (MeshCentral)
 
-## Reporting a Vulnerability
+## Reporting
+Report security issues privately to IntAillium:
+- Email: security@intaillium.com (replace with your real address)
 
-If you discover a security vulnerability in the Aillium platform or any related repository:
+## Supported versions
+Only the default branch of this fork is supported for production use.
 
-Please report it **privately** by emailing:
+## Hardening expectations
+- Run behind TLS (reverse proxy preferred)
+- Restrict admin access to a private network or allowlist
+- Rotate secrets (cookie secret, admin bootstrap) via Vault/OpenBao
+- Log access events and administrative actions
 
-security@intaillium.com
-
-Do NOT open a public GitHub issue for security vulnerabilities.
-
----
-
-## Scope
-
-This policy applies to:
-- Aillium Core
-- Aillium Portal
-- OpenClaw fork
-- UI-TARS fork
-- Integrations
-- Remote access components
-- Schemas and APIs
-
----
-
-## Disclosure Process
-
-1. Submit details privately
-2. We will acknowledge within 72 hours
-3. Fixes will be prioritised based on severity
-4. Coordinated disclosure where appropriate
-
----
-
-## Safe Harbour
-
-We support responsible disclosure and will not pursue action against researchers acting in good faith.
+## Out of scope
+- Executor behavior (belongs in `aillium-ui-tars`)
+- Orchestration decisions (belongs in `aillium-openclaw`)
