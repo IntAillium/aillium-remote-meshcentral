@@ -1,28 +1,66 @@
-# Aillium Remote (MeshCentral)
+# aillium-remote-meshcentral
 
-This repository is the **remote connectivity substrate** for the Aillium platform by IntAillium.
+This repository is the **Data Plane remote connectivity substrate** for IntAillium.
 
-## What this is
-- A fork of MeshCentral, operated as a **remote access gateway** to managed endpoints.
-- Used **only** by Aillium executors (e.g., `aillium-ui-tars`) to perform approved UI work on client devices.
+It provides MeshCentral-based remote access capability for the Tech Support MVP and is intentionally constrained to a passive transport/session role.
 
-## What this is NOT
-- Not an executor (does not accept `executor.request`)
-- Not a planner (no orchestration logic)
-- Not a system of record (no task state)
-- Not tenant-facing UI for customers (portal lives in `aillium-portal`)
+## v1 Production-Ready Minimum Scope
 
-## Integration boundary
-Only the Execution Plane may connect to this service:
-- ✅ `aillium-ui-tars` may connect to create remote sessions and gather evidence.
-- ❌ `aillium-core` and `aillium-openclaw` must never call MeshCentral directly.
+This v1 iteration focuses on:
+- Security posture and operational safety controls.
+- Tenant/device scoping conventions.
+- Executor-only integration boundary.
+- Docker Compose deployment scaffold with reverse-proxy TLS guidance.
 
-## Tenant and device scoping
-- Devices must be mapped to tenants via tags/groups (documented in `docs/NETWORKING.AILLIUM.md`).
-- Operators must not be able to cross-connect between tenants.
+## What this repository IS
 
-## Security posture
-See:
+- A remote access substrate for endpoint connectivity and remote sessions.
+- A component consumed by **aillium-tars** (executor plane).
+- A service that can support both:
+  - Headless / agent-first execution patterns for automation wrappers.
+  - Human technician UI access for MVP support operations.
+
+## What this repository is NOT
+
+- Not a policy engine.
+- Not an autonomous action system.
+- Not a billing/metering source.
+- Not a workflow/orchestration decision-maker.
+- Not the source of truth for tenant↔device ownership.
+
+## Hard Architecture Boundary
+
+- ✅ Allowed caller: `aillium-tars`.
+- ❌ Forbidden direct callers: `aillium-core`, `aillium-openclaw`.
+- Approvals, policy, and governance controls are upstream responsibilities.
+- MeshCentral remains a passive execution substrate.
+
+See: `docs/ARCH_BOUNDARIES.AILLIUM.md`.
+
+## Security and Compliance Docs
+
 - `SECURITY.AILLIUM.md`
-- `docs/THREAT_MODEL.AILLIUM.md`
+- `AI_GUARDRAILS.AILLIUM.md`
 - `docs/RUNBOOK.AILLIUM.md`
+- `docs/TENANCY_MODEL.AILLIUM.md`
+
+## Deployment Assets
+
+- Environment template: `.env.example` (placeholders only, no secrets)
+- Compose scaffold: `docker-compose.example.yml`
+
+## Reverse Proxy Requirement (TLS)
+
+For production, place MeshCentral behind a reverse proxy edge (Traefik or Caddy) and terminate TLS there.
+
+- Keep public TLS certificates and private keys at the edge.
+- Restrict direct MeshCentral exposure.
+- Route only required ports from edge to MeshCentral service.
+
+Example snippets for Traefik and Caddy are provided in `SECURITY.AILLIUM.md` and operationalized in `docs/RUNBOOK.AILLIUM.md`.
+
+## Explicit Deferrals (Out of v1)
+
+- SIEM/Wazuh integrations.
+- Billing/OpenMeter usage event pipelines.
+- MeshCentral scripting/playbook execution.
