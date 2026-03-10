@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  meshcentral:
+    image: ghcr.io/ylianst/meshcentral:latest
+    container_name: aillium-remote-meshcentral
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Static config posture for predictable operations
+      DYNAMIC_CONFIG: "false"
+      HOSTNAME: ${MESHCENTRAL_PUBLIC_FQDN}
+      PORT: ${MESHCENTRAL_INTERNAL_PORT}
+      REDIR_PORT: ${MESHCENTRAL_HTTP_REDIRECT_PORT}
+      ALLOW_NEW_ACCOUNTS: "false"
+
+      USE_MONGODB: ${MESHCENTRAL_USE_MONGODB}
+      MONGO_URL: ${MESHCENTRAL_MONGO_URL}
+    volumes:
+      - meshcentral-data:${MESHCENTRAL_DATA_PATH}
+      - meshcentral-files:${MESHCENTRAL_FILES_PATH}
+      - meshcentral-backups:${MESHCENTRAL_BACKUPS_PATH}
+
+    # Internal exposure only; place reverse proxy at edge for public TLS.
+    expose:
+      - "${MESHCENTRAL_INTERNAL_PORT}"
+      - "${MESHCENTRAL_HTTP_REDIRECT_PORT}"
+
+  # Example edge service placeholders (choose one pattern externally):
+  # - Traefik or Caddy should terminate TLS and route to meshcentral service.
+
+volumes:
+  meshcentral-data:
+  meshcentral-files:
+  meshcentral-backups:
