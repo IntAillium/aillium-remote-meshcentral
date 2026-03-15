@@ -5,7 +5,7 @@ Security posture guidance for `aillium-remote-meshcentral`.
 ## 1) Core Security Principles (v1)
 
 - This service is **Data Plane only**.
-- It remains **passive** and executor-consumed.
+- It remains **passive** and consumed through Core remote-support dispatch boundaries.
 - It does not perform approvals, policy decisions, or billing logic.
 - No secrets are to be stored in repository files.
 

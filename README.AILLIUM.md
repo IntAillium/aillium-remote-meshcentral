@@ -9,13 +9,13 @@ It provides MeshCentral-based remote access capability for the Tech Support MVP 
 This v1 iteration focuses on:
 - Security posture and operational safety controls.
 - Tenant/device scoping conventions.
-- Executor-only integration boundary.
+- Aillium Core-to-MeshCentral remote-support adapter boundary.
 - Docker Compose deployment scaffold with reverse-proxy TLS guidance.
 
 ## What this repository IS
 
 - A remote access substrate for endpoint connectivity and remote sessions.
-- A component consumed by **aillium-tars** (executor plane).
+- A remote-support substrate consumed through **aillium-core** MeshCentral dispatch boundaries.
 - A service that can support both:
   - Headless / agent-first execution patterns for automation wrappers.
   - Human technician UI access for MVP support operations.
@@ -30,12 +30,13 @@ This v1 iteration focuses on:
 
 ## Hard Architecture Boundary
 
-- ✅ Allowed caller: `aillium-tars`.
-- ❌ Forbidden direct callers: `aillium-core`, `aillium-openclaw`.
-- Approvals, policy, and governance controls are upstream responsibilities.
-- MeshCentral remains a passive execution substrate.
+- ✅ Allowed integration path: `aillium-core` MeshCentral remote-support contracts.
+- ❌ Forbidden scope: `aillium-openclaw` runtime execution responsibilities.
+- ❌ Forbidden direct role: generic task executor/runtime endpoint.
+- Approvals, policy, and governance controls remain upstream responsibilities in Core.
+- MeshCentral remains a passive remote-support substrate.
 
-See: `docs/ARCH_BOUNDARIES.AILLIUM.md`.
+See: `docs/ARCH_BOUNDARIES.AILLIUM.md` and `docs/MESHCENTRAL_ADAPTER_BOUNDARY.AILLIUM.md`.
 
 ## Security and Compliance Docs
 

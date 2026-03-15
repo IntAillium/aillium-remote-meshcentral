@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Aillium MeshCentral Remote Support Adapter Contract (Local Boundary)",
+  "description": "Local adapter contract surface for mapping Aillium Core MeshCentral remote-support requests into MeshCentral substrate operations.",
+  "type": "object",
+  "required": ["contractFamily", "adapter", "operations", "deferredIntegrations"],
+  "properties": {
+    "contractFamily": {
+      "type": "string",
+      "const": "meshcentral-remote-support"
+    },
+    "adapter": {
+      "type": "string",
+      "const": "aillium-remote-meshcentral"
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "resolveDeviceTarget",
+          "createSupportSession",
+          "handoffSessionControl",
+          "captureSessionEvidence",
+          "mapDeviceToTenantGroup"
+        ]
+      },
+      "minItems": 5,
+      "uniqueItems": true
+    },
+    "deferredIntegrations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "explicitlyOutOfScope": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "openclawRuntimeTaskExecution",
+          "genericExecutorCommands",
+          "policyApprovalDecisioning",
+          "billingOwnership"
+        ]
+      },
+      "uniqueItems": true
+    }
+  }
+}
