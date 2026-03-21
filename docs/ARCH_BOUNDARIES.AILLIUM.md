@@ -8,14 +8,16 @@ Architecture boundaries for `aillium-remote-meshcentral`.
 
 It provides connectivity/session capability and does not own planning, policy, business logic, or billing.
 
-## 2) Executor-Only Boundary
+## 2) Core-to-MeshCentral Adapter Boundary
 
-- Intended consumer: `aillium-tars`.
-- Not for direct integration by `aillium-core` or `aillium-openclaw`.
+- Intended consumer: `aillium-core` via MeshCentral remote-support contract family.
+- Not a direct endpoint for `aillium-openclaw` runtime tasks.
+- Not a generic executor/runtime service.
 
 Rationale:
-- Keep control-plane policy/approval concerns upstream.
-- Keep the remote substrate narrowly scoped to session transport.
+- Keep policy/approval concerns upstream in Core.
+- Keep OpenClaw runtime concerns in OpenClaw.
+- Keep MeshCentral substrate narrowly scoped to remote-support transport/session concerns.
 
 ## 3) Passive Behavior Requirement
 
@@ -38,9 +40,19 @@ Both paths require explicit consent handling and auditability managed by operati
 - Operational state required by MeshCentral may exist locally (runtime/session metadata), but tenant ownership authority remains external.
 - `aillium-core` remains source of truth for tenant↔device ownership mappings.
 
-## 6) Explicit Deferrals
+## 6) Adapter Responsibilities
+
+In scope adapter responsibilities in this repo:
+- Device targeting resolution.
+- Session creation and session metadata capture.
+- Control handoff signaling metadata.
+- Tenant/device group mapping.
+- Agent packaging and RBAC-default operational support.
+
+## 7) Explicit Deferrals
 
 Out of scope for this v1 minimum:
 - SIEM/Wazuh integrations.
 - Billing/OpenMeter usage events.
-- MeshCentral scripting/playbook execution.
+- OpenClaw runtime task execution.
+- Generic execution/playbook orchestration.

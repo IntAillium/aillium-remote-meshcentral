@@ -17,9 +17,9 @@ Disallowed roles:
 
 ## Caller and Integration Rules
 
-- `aillium-tars` is the executor-side consumer.
-- `aillium-core` and `aillium-openclaw` must not directly use this service as an execution/policy endpoint.
-- Approval and policy gates are upstream and must be evaluated before remote session initiation.
+- `aillium-core` is the control-plane consumer through MeshCentral remote-support contracts.
+- `aillium-openclaw` runtime tasks must not be routed into this service.
+- Approval and policy gates are upstream in Core and must be evaluated before remote session initiation.
 
 ## Operational Safety Rules
 
