@@ -2,8 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Aillium MeshCentral Remote Support Adapter Contract (Local Boundary)",
   "description": "Local adapter contract surface for mapping Aillium Core MeshCentral remote-support requests into MeshCentral substrate operations.",
+  "version": "1.1.0",
+  "implementationStatus": "implemented",
   "type": "object",
-  "required": ["contractFamily", "adapter", "operations", "deferredIntegrations"],
+  "required": ["contractFamily", "adapter", "operations"],
   "properties": {
     "contractFamily": {
       "type": "string",
@@ -22,15 +24,39 @@
           "createSupportSession",
           "handoffSessionControl",
           "captureSessionEvidence",
-          "mapDeviceToTenantGroup"
+          "mapDeviceToTenantGroup",
+          "endSession",
+          "listActiveSessions",
+          "getHealth"
         ]
       },
       "minItems": 5,
       "uniqueItems": true
     },
-    "deferredIntegrations": {
-      "type": "array",
-      "items": { "type": "string" }
+    "components": {
+      "type": "object",
+      "properties": {
+        "meshcentralApiClient": {
+          "description": "HTTP/WebSocket client for MeshCentral server API",
+          "status": { "const": "implemented" }
+        },
+        "tenantGroupManager": {
+          "description": "Manages tenant-to-MeshCentral-group mapping with caching",
+          "status": { "const": "implemented" }
+        },
+        "sessionManager": {
+          "description": "Manages remote support session lifecycle and action logging",
+          "status": { "const": "implemented" }
+        },
+        "evidenceCollector": {
+          "description": "Collects, normalizes, and stores session evidence in tenant-scoped paths",
+          "status": { "const": "implemented" }
+        },
+        "healthProbe": {
+          "description": "Health check for MeshCentral connectivity and adapter status",
+          "status": { "const": "implemented" }
+        }
+      }
     },
     "explicitlyOutOfScope": {
       "type": "array",
