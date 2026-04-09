@@ -32,15 +32,18 @@ function createAilliumHttpApi(adapterOptions = {}) {
   const evidenceCollector = adapter._evidenceCollector;
 
   const server = http.createServer(async (req, res) => {
-    // Auth check
-    if (API_TOKEN && req.headers['x-aillium-token'] !== API_TOKEN) {
-      return sendJson(res, 401, { error: 'Unauthorized' });
+    // Auth check — require token in production
+    if (API_TOKEN) {
+      if (req.headers['x-aillium-token'] !== API_TOKEN) {
+        return sendJson(res, 401, { error: 'Unauthorized' });
+      }
+    } else if (process.env.NODE_ENV === 'production') {
+      console.error('[Aillium] WARNING: AILLIUM_API_TOKEN not set — API is unprotected');
     }
 
+    try {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const pathname = url.pathname;
-
-    try {
       // POST /aillium/api/diagnostics
       if (pathname === '/aillium/api/diagnostics' && req.method === 'POST') {
         const body = await parseBody(req);
@@ -217,8 +220,9 @@ function createAilliumHttpApi(adapterOptions = {}) {
 // Auto-start if run directly
 if (require.main === module) {
   const api = createAilliumHttpApi();
-  api.start().then(() => {
-    console.log(`[Aillium] MeshCentral adapter API ready`);
+  api.start().catch((err) => {
+    console.error(`[Aillium] Failed to start HTTP API: ${err.message}`);
+    process.exit(1);
   });
 }
 

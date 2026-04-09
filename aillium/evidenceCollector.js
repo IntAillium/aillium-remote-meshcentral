@@ -11,13 +11,29 @@ class EvidenceCollector {
     this.basePath = options.basePath || EVIDENCE_BASE_PATH;
   }
 
+  _sanitizePathSegment(segment) {
+    if (!segment || typeof segment !== 'string') return 'unknown';
+    return segment.replace(/[^a-zA-Z0-9_\-]/g, '_');
+  }
+
   _tenantPath(tenantId, sessionId) {
-    return path.join(this.basePath, tenantId, sessionId);
+    const safeTenant = this._sanitizePathSegment(tenantId);
+    const safeSession = this._sanitizePathSegment(sessionId);
+    const resolved = path.join(this.basePath, safeTenant, safeSession);
+    // Ensure the resolved path stays within basePath
+    if (!resolved.startsWith(path.resolve(this.basePath))) {
+      throw new Error('Invalid evidence path: directory traversal detected');
+    }
+    return resolved;
   }
 
   _ensureDir(dirPath) {
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
+    try {
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
+    } catch (err) {
+      throw new Error(`Failed to create evidence directory: ${err.message}`);
     }
   }
 
