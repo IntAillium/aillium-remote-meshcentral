@@ -182,13 +182,24 @@ function createAilliumHttpApi(adapterOptions = {}) {
       if (pathname === '/aillium/api/resolve-device' && req.method === 'POST') {
         const body = await parseBody(req);
         const result = await adapter.resolveDeviceTarget(body);
-        return sendJson(res, 200, result);
+        const statusCode = result?.result?.resolved === false ? 404 : 200;
+        return sendJson(res, statusCode, result);
       }
 
       // GET /aillium/api/health
       if (pathname === '/aillium/api/health' && req.method === 'GET') {
         const health = await adapter.getHealth();
         return sendJson(res, health.status === 'operational' ? 200 : 503, health);
+      }
+
+      // GET /aillium/api/sessions
+      if (pathname === '/aillium/api/sessions' && req.method === 'GET') {
+        const tenantId = url.searchParams.get('tenant_id');
+        if (!tenantId) {
+          return sendJson(res, 400, { error: 'tenant_id is required' });
+        }
+        const result = await adapter.listActiveSessions({ tenant_id: tenantId });
+        return sendJson(res, 200, result);
       }
 
       // 404

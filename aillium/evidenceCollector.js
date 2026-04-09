@@ -50,7 +50,11 @@ class EvidenceCollector {
     const filepath = path.join(dir, filename);
 
     const buffer = Buffer.isBuffer(screenshotBuffer) ? screenshotBuffer : Buffer.from(screenshotBuffer);
-    fs.writeFileSync(filepath, buffer);
+    try {
+      fs.writeFileSync(filepath, buffer);
+    } catch (err) {
+      throw new Error(`Failed to write evidence file ${filename}: ${err.message}`);
+    }
 
     const hash = this._computeHash(buffer);
 
@@ -80,7 +84,11 @@ class EvidenceCollector {
       exported_at: new Date().toISOString(),
     }, null, 2);
 
-    fs.writeFileSync(filepath, content, 'utf-8');
+    try {
+      fs.writeFileSync(filepath, content, 'utf-8');
+    } catch (err) {
+      throw new Error(`Failed to write evidence file ${filename}: ${err.message}`);
+    }
     const hash = this._computeHash(Buffer.from(content));
 
     return {
@@ -109,7 +117,11 @@ class EvidenceCollector {
       captured_at: new Date().toISOString(),
     }, null, 2);
 
-    fs.writeFileSync(filepath, content, 'utf-8');
+    try {
+      fs.writeFileSync(filepath, content, 'utf-8');
+    } catch (err) {
+      throw new Error(`Failed to write evidence file ${filename}: ${err.message}`);
+    }
     const hash = this._computeHash(Buffer.from(content));
 
     return {
@@ -136,7 +148,11 @@ class EvidenceCollector {
       captured_at: new Date().toISOString(),
     }, null, 2);
 
-    fs.writeFileSync(filepath, content, 'utf-8');
+    try {
+      fs.writeFileSync(filepath, content, 'utf-8');
+    } catch (err) {
+      throw new Error(`Failed to write evidence file ${filename}: ${err.message}`);
+    }
     const hash = this._computeHash(Buffer.from(content));
 
     return {

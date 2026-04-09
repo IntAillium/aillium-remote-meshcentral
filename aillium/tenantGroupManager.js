@@ -27,6 +27,9 @@ class TenantGroupManager {
 
     const groupName = this._tenantGroupName(tenantId);
     const groups = await this.api.listDeviceGroups();
+    if (!groups || typeof groups !== 'object') {
+      // Cannot list groups, fall through to create
+    }
 
     let existing = null;
     if (groups && typeof groups === 'object') {

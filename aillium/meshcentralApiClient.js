@@ -8,6 +8,7 @@ const MESHCENTRAL_PORT = parseInt(process.env.MESHCENTRAL_PORT || '4430', 10);
 const MESHCENTRAL_ADMIN_USER = process.env.MESHCENTRAL_ADMIN_USER || 'admin';
 const MESHCENTRAL_ADMIN_PASS = process.env.MESHCENTRAL_ADMIN_PASS || '';
 const MESHCENTRAL_PROTOCOL = process.env.MESHCENTRAL_PROTOCOL || 'https';
+const MESHCENTRAL_REJECT_UNAUTHORIZED = process.env.MESHCENTRAL_REJECT_UNAUTHORIZED !== 'false';
 
 class MeshCentralApiClient {
   constructor(options = {}) {
@@ -16,11 +17,18 @@ class MeshCentralApiClient {
     this.username = options.username || MESHCENTRAL_ADMIN_USER;
     this.password = options.password || MESHCENTRAL_ADMIN_PASS;
     this.protocol = options.protocol || MESHCENTRAL_PROTOCOL;
+    this.rejectUnauthorized = options.rejectUnauthorized ?? MESHCENTRAL_REJECT_UNAUTHORIZED;
     this.authToken = null;
     this.tokenExpiry = null;
   }
 
   async _request(method, path, body = null) {
+    // Auto-refresh expired token
+    if (this.authToken && this.tokenExpiry && Date.now() > this.tokenExpiry) {
+      this.authToken = null;
+      this.tokenExpiry = null;
+    }
+
     const transport = this.protocol === 'https' ? https : http;
     const headers = {
       'Content-Type': 'application/json',
@@ -46,7 +54,7 @@ class MeshCentralApiClient {
         path,
         method,
         headers,
-        rejectUnauthorized: false,
+        rejectUnauthorized: this.rejectUnauthorized,
       };
 
       const req = transport.request(opts, (res) => {
