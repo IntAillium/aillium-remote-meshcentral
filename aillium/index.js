@@ -6,6 +6,7 @@ const { TenantGroupManager, TENANT_GROUP_PREFIX } = require('./tenantGroupManage
 const { SessionManager } = require('./sessionManager');
 const { EvidenceCollector } = require('./evidenceCollector');
 const { HealthProbe } = require('./healthProbe');
+const { createAilliumHttpApi } = require('./httpApi');
 
 module.exports = {
   createMeshCentralRemoteSupportAdapter,
@@ -16,4 +17,5 @@ module.exports = {
   SessionManager,
   EvidenceCollector,
   HealthProbe,
+  createAilliumHttpApi,
 };

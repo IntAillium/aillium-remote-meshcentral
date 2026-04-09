@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Aillium MeshCentral Remote Support Adapter Contract (Local Boundary)",
   "description": "Local adapter contract surface for mapping Aillium Core MeshCentral remote-support requests into MeshCentral substrate operations.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "implementationStatus": "implemented",
   "type": "object",
   "required": ["contractFamily", "adapter", "operations"],
@@ -27,7 +27,12 @@
           "mapDeviceToTenantGroup",
           "endSession",
           "listActiveSessions",
-          "getHealth"
+          "getHealth",
+          "collectDiagnostics",
+          "restartAgent",
+          "listEvidence",
+          "captureEvidence",
+          "resolveDevice"
         ]
       },
       "minItems": 5,
@@ -55,6 +60,18 @@
         "healthProbe": {
           "description": "Health check for MeshCentral connectivity and adapter status",
           "status": { "const": "implemented" }
+        },
+        "httpApi": {
+          "description": "HTTP API server exposing diagnostics, restart-agent, evidence, and health endpoints for aillium-core integration",
+          "status": { "const": "implemented" },
+          "endpoints": [
+            "POST /aillium/api/diagnostics",
+            "POST /aillium/api/restart-agent",
+            "GET  /aillium/api/evidence",
+            "POST /aillium/api/evidence/capture",
+            "POST /aillium/api/resolve-device",
+            "GET  /aillium/api/health"
+          ]
         }
       }
     },
