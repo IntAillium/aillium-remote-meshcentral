@@ -76,3 +76,41 @@ test('other operations remain deferred (will be implemented incrementally)', () 
         assert.equal(result.integrationStatus, 'deferred');
     }
 });
+
+test('probeAccountPrivileges flags full siteadmin as over-privileged', async () => {
+    const fakeClient = makeFakeClient({ userinfo: { name: 'admin', siteadmin: 0xFFFFFFFF } });
+    const adapter = createMeshCentralRemoteSupportAdapter({ client: fakeClient });
+    const result = await adapter.probeAccountPrivileges();
+    assert.equal(result.ok, true);
+    assert.equal(result.isFullSiteAdmin, true);
+    assert.equal(result.username, 'admin');
+    assert.equal(fakeClient.calls[0].action, 'userinfo');
+});
+
+test('probeAccountPrivileges accepts scoped service accounts', async () => {
+    const fakeClient = makeFakeClient({ userinfo: { name: 'aillium-svc', siteadmin: 0 } });
+    const adapter = createMeshCentralRemoteSupportAdapter({ client: fakeClient });
+    const result = await adapter.probeAccountPrivileges();
+    assert.equal(result.ok, true);
+    assert.equal(result.isFullSiteAdmin, false);
+    assert.equal(result.siteadmin, 0);
+});
+
+test('probeAccountPrivileges returns ok:false when client is not configured', async () => {
+    const adapter = createMeshCentralRemoteSupportAdapter({ env: {} });
+    const result = await adapter.probeAccountPrivileges();
+    assert.equal(result.ok, false);
+    assert.equal(result.error.code, 'MESH_CLIENT_NOT_CONFIGURED');
+});
+
+test('probeAccountPrivileges surfaces transport errors', async () => {
+    const fakeClient = {
+        async request() { throw new Error('auth failed'); },
+        close() {}
+    };
+    const adapter = createMeshCentralRemoteSupportAdapter({ client: fakeClient });
+    const result = await adapter.probeAccountPrivileges();
+    assert.equal(result.ok, false);
+    assert.equal(result.error.code, 'MESH_REQUEST_FAILED');
+    assert.match(result.error.message, /auth failed/);
+});

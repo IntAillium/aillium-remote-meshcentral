@@ -2,6 +2,11 @@
 
 const { MeshCentralClient } = require('./meshcentralClient.js');
 
+// MeshCentral siteadmin bitmask for full site administrator. The adapter's
+// service account should NOT be a full siteadmin in production — see
+// SECURITY.AILLIUM.md §5.1 for required per-operation rights.
+const SITEADMIN_FULL = 0xFFFFFFFF;
+
 class DeferredIntegrationError extends Error {
     constructor(operationName) {
         super('MeshCentral live integration for operation "' + operationName + '" is deferred.');
@@ -96,6 +101,43 @@ function createMeshCentralRemoteSupportAdapter(options = {}) {
         handoffSessionControl(request) { return deferred('handoffSessionControl', request); },
         captureSessionEvidence(request) { return deferred('captureSessionEvidence', request); },
         mapDeviceToTenantGroup(request) { return deferred('mapDeviceToTenantGroup', request); },
+
+        /**
+         * Probes the configured MeshCentral service account and returns its
+         * privilege level. Callers (ops health checks, startup probes) should
+         * fail or warn loudly if `isFullSiteAdmin` is true — see
+         * SECURITY.AILLIUM.md §5.1 for the principle of least privilege.
+         *
+         * @returns {Promise<{
+         *   ok: boolean,
+         *   isFullSiteAdmin?: boolean,
+         *   siteadmin?: number,
+         *   username?: string,
+         *   error?: { code: string, message: string }
+         * }>}
+         */
+        async probeAccountPrivileges() {
+            const client = getClient();
+            if (!client) {
+                return { ok: false, error: { code: 'MESH_CLIENT_NOT_CONFIGURED', message: 'MESHCENTRAL_URL is not set' } };
+            }
+            try {
+                const response = await client.request({ action: 'userinfo' });
+                const user = (response && response.userinfo) || response || {};
+                const siteadmin = typeof user.siteadmin === 'number' ? user.siteadmin : 0;
+                return {
+                    ok: true,
+                    isFullSiteAdmin: siteadmin === SITEADMIN_FULL,
+                    siteadmin,
+                    username: user.name || user._id || null
+                };
+            } catch (err) {
+                return {
+                    ok: false,
+                    error: { code: 'MESH_REQUEST_FAILED', message: err && err.message ? err.message : String(err) }
+                };
+            }
+        },
 
         assertLiveIntegration(operationName) {
             throw new DeferredIntegrationError(operationName);
