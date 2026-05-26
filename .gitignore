@@ -1,3 +1,9 @@
+## Aillium: never commit env files with real credentials
+.env
+.env.local
+.env.*.local
+!.env.example
+
 ## Ignore nodejs things
 [Nn]ode_modules/
 [Tt]yping/

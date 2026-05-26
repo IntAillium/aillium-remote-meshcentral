@@ -75,6 +75,35 @@ Retention and storage policy are defined by upstream governance, but v1 operatio
 - Disable stale operator accounts promptly.
 - Rotate privileged credentials and session-related secrets on schedule and incident trigger.
 
+### 5.1) Adapter Service Account — Required MeshCentral Rights
+
+The adapter (`aillium/httpApi.js`) authenticates to MeshCentral with a single
+service account configured via `MESHCENTRAL_USERNAME`/`MESHCENTRAL_PASSWORD`
+or `MESHCENTRAL_LOGIN_KEY`. This account MUST NOT be a full site administrator
+(`siteadmin = 0xFFFFFFFF`). Provision a dedicated service user scoped to the
+mesh groups it needs to operate against, with only the following rights
+flags enabled per operation:
+
+| Operation | Required MeshCentral rights |
+|---|---|
+| `resolveDeviceTarget` | `MESHRIGHT_DEVICEDETAILS` (0x100000) on the target mesh group(s) |
+| `createSupportSession` | `MESHRIGHT_REMOTECONTROL` (0x08), `MESHRIGHT_AGENTCONSOLE` (0x10) |
+| `handoffSessionControl` | `MESHRIGHT_REMOTECONTROL` (0x08) |
+| `captureSessionEvidence` | `MESHRIGHT_SERVERFILES` (0x40000), `SITERIGHT_RECORDINGS` (0x200) |
+| `mapDeviceToTenantGroup` | `MESHRIGHT_MANAGECOMPUTERS` (0x04) on the source mesh group |
+
+Operators can call `adapter.probeAccountPrivileges()` at startup or via a
+health check to assert the configured account is not over-privileged. The
+probe logs a warning if `siteadmin === 0xFFFFFFFF`.
+
+### 5.2) Compromise Blast Radius
+
+If the service account credentials leak, the attacker gains the rights
+granted to that account — and only those. Granting full `siteadmin`
+means the blast radius is the entire MeshCentral realm (every user,
+every device, every recording). Scoping the service account per the
+table above contains the blast radius to a single operation surface.
+
 ## 6) Explicitly Out of Scope for v1
 
 - SIEM/Wazuh integrations.
