@@ -1,5 +1,7 @@
 'use strict';
 
+const { MeshCentralClient } = require('./meshcentralClient.js');
+
 class DeferredIntegrationError extends Error {
     constructor(operationName) {
         super('MeshCentral live integration for operation "' + operationName + '" is deferred.');
@@ -9,46 +11,91 @@ class DeferredIntegrationError extends Error {
     }
 }
 
-function buildEnvelope(operation, request) {
-    return {
+function buildEnvelope(operation, request, extra) {
+    return Object.assign({
         adapter: 'aillium-remote-meshcentral',
         contractFamily: 'meshcentral-remote-support',
         operation,
-        request,
-        integrationStatus: 'deferred'
-    };
+        request
+    }, extra);
 }
 
 function deferred(operation, request) {
-    const envelope = buildEnvelope(operation, request);
-    envelope.error = {
-        code: 'MESH_ADAPTER_DEFERRED_INTEGRATION',
-        message: 'Live MeshCentral API integration is not yet implemented for this operation.'
-    };
-    return envelope;
+    return buildEnvelope(operation, request, {
+        integrationStatus: 'deferred',
+        error: {
+            code: 'MESH_ADAPTER_DEFERRED_INTEGRATION',
+            message: 'Live MeshCentral API integration is not yet implemented for this operation.'
+        }
+    });
 }
 
-function createMeshCentralRemoteSupportAdapter() {
+/**
+ * @param {object} [options]
+ * @param {MeshCentralClient} [options.client] - Pre-configured client (overrides env-based config)
+ * @param {object} [options.env] - Env-like object for testing (defaults to process.env)
+ */
+function createMeshCentralRemoteSupportAdapter(options = {}) {
+    const env = options.env || process.env;
+
+    function getClient() {
+        if (options.client) return options.client;
+        if (!env.MESHCENTRAL_URL) return null;
+        return new MeshCentralClient({
+            url: env.MESHCENTRAL_URL,
+            loginKey: env.MESHCENTRAL_LOGIN_KEY,
+            username: env.MESHCENTRAL_USERNAME,
+            password: env.MESHCENTRAL_PASSWORD,
+            timeoutMs: env.MESHCENTRAL_TIMEOUT_MS ? Number.parseInt(env.MESHCENTRAL_TIMEOUT_MS, 10) : undefined
+        });
+    }
+
     return {
-        resolveDeviceTarget(request) {
-            return deferred('resolveDeviceTarget', request);
+        async resolveDeviceTarget(request) {
+            const client = getClient();
+            if (!client) {
+                return deferred('resolveDeviceTarget', request);
+            }
+            try {
+                // MeshCentral 'nodes' action returns all nodes the user can see.
+                // We filter to find the requested device by device_id.
+                const response = await client.request({ action: 'nodes' });
+                const nodes = response && (response.nodes || response.devices) || {};
+                let matched = null;
+                for (const meshid of Object.keys(nodes)) {
+                    const list = Array.isArray(nodes[meshid]) ? nodes[meshid] : [];
+                    for (const node of list) {
+                        if (node._id === request.device_id || node.name === request.device_id) {
+                            matched = { node_id: node._id, mesh_id: meshid, name: node.name };
+                            break;
+                        }
+                    }
+                    if (matched) break;
+                }
+                if (!matched) {
+                    return buildEnvelope('resolveDeviceTarget', request, {
+                        integrationStatus: 'failed',
+                        error: { code: 'DEVICE_NOT_FOUND', message: `No MeshCentral node matches device_id "${request.device_id}"` }
+                    });
+                }
+                return buildEnvelope('resolveDeviceTarget', request, {
+                    integrationStatus: 'ok',
+                    result: matched
+                });
+            } catch (err) {
+                return buildEnvelope('resolveDeviceTarget', request, {
+                    integrationStatus: 'error',
+                    error: { code: 'MESH_REQUEST_FAILED', message: err && err.message ? err.message : String(err) }
+                });
+            }
         },
 
-        createSupportSession(request) {
-            return deferred('createSupportSession', request);
-        },
-
-        handoffSessionControl(request) {
-            return deferred('handoffSessionControl', request);
-        },
-
-        captureSessionEvidence(request) {
-            return deferred('captureSessionEvidence', request);
-        },
-
-        mapDeviceToTenantGroup(request) {
-            return deferred('mapDeviceToTenantGroup', request);
-        },
+        // TODO: Implement against MeshCentralClient following the resolveDeviceTarget pattern.
+        // Required MeshCentral actions: see meshctrl.js for the protocol (createSession, etc.).
+        createSupportSession(request) { return deferred('createSupportSession', request); },
+        handoffSessionControl(request) { return deferred('handoffSessionControl', request); },
+        captureSessionEvidence(request) { return deferred('captureSessionEvidence', request); },
+        mapDeviceToTenantGroup(request) { return deferred('mapDeviceToTenantGroup', request); },
 
         assertLiveIntegration(operationName) {
             throw new DeferredIntegrationError(operationName);
@@ -58,5 +105,6 @@ function createMeshCentralRemoteSupportAdapter() {
 
 module.exports = {
     DeferredIntegrationError,
-    createMeshCentralRemoteSupportAdapter
+    createMeshCentralRemoteSupportAdapter,
+    MeshCentralClient
 };
