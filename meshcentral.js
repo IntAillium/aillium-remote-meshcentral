@@ -3677,7 +3677,7 @@ function CreateMeshCentralServer(config, args) {
                     })
                     obj.exeHandler.streamExeWithMeshPolicy(
                         {
-                            platform: 'win32',
+                            platform: objx.meshAgentBinaries[archid].platform,
                             sourceFileName: agentpath,
                             destinationStream: outStream,
                             randomPolicy: true, // Indicates that the msh policy is random data.
