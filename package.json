@@ -20,9 +20,14 @@
   "bin": {
     "meshcentral": "bin/meshcentral"
   },
+  "scripts": {
+    "aillium:fenced-gateway": "node aillium/fencedGateway.server.js",
+    "test:aillium-fenced-gateway": "node --test aillium/fencedGateway.test.js"
+  },
   "license": "Apache-2.0",
   "files": [
     "*.js",
+    "aillium",
     "amt",
     "bin",
     "rdp",
